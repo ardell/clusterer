@@ -1,0 +1,22 @@
+Clusterer
+A pair clustering algorithm in PHP. Released under the MIT license.
+
+This algorithm takes pair data, for instance "a is near b" and "b is near c" to produce clusters (a, b, c).
+
+Input should be provided as an array of 2 item arrays, e.g:
+$pairs = array(
+    array('a', 'b'),
+    array('b', 'c'),
+    array('d', 'e'),
+    array('d', 'f'),
+    array('g', 'h')
+)
+
+Clusterer::cluster($pairs); // will return...
+array(
+    array('a', 'b', 'c'),
+    array('d', 'e', 'f'),
+    array('g', 'h')
+)
+
+Thanks to Alan Pinstein for help developing and writing the algorithm.
