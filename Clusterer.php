@@ -53,8 +53,11 @@ class Clusterer
         {
             if (in_array($a, $bucket))
             {
-                // Add b to that bucket
-                $buckets[$key][] = $b;
+                if (!in_array($b, $bucket))
+                {
+                    // Add b to that bucket
+                    $buckets[$key][] = $b;
+                }
 
                 // return cluster($pairs, $buckets)
                 return self::cluster($pairs, $buckets);
@@ -67,7 +70,10 @@ class Clusterer
             if (in_array($b, $bucket))
             {
                 // Add b to that bucket
-                $buckets[$key][] = $a;
+                if (!in_array($a, $bucket))
+                {
+                    $buckets[$key][] = $a;
+                }
 
                 // return cluster($pairs, $buckets)
                 return self::cluster($pairs, $buckets);
@@ -76,7 +82,12 @@ class Clusterer
 
         // Create a new bucket
         // Add a and b to the bucket
-        array_push($buckets, array($a, $b));
+        if ($a == $b)
+        {
+            array_push($buckets, array($a));
+        } else {
+            array_push($buckets, array($a, $b));
+        }
         return self::cluster($pairs, $buckets);
     }
 

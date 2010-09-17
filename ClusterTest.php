@@ -44,13 +44,8 @@ class ClusterTest extends PHPUnit_Framework_TestCase
      */
     public function testClustererClustersItemsCorrectly($pairs, $expected)
     {
-        $pairs = array(
-            array(1,    2),
-            array(2,    3),
-            array(4,    5),
-        );
         $this->assertEquals(
-            array( array(1, 2, 3), array(4, 5) ),
+            $expected,
             Clusterer::cluster($pairs)
         );
     }
@@ -90,6 +85,30 @@ class ClusterTest extends PHPUnit_Framework_TestCase
         array_push($retVal, $test);
 
         return $retVal;
+    }
+
+    public function testClustererDetectsDuplicates()
+    {
+        $pairs = array(
+            array(1,    2),
+            array(2,    3),
+            array(3,    1),
+        );
+        $this->assertEquals(
+            array( array(1, 2, 3) ),
+            Clusterer::cluster($pairs)
+        );
+    }
+
+    public function testClustererDetectsDuplicateItems()
+    {
+        $pairs = array(
+            array(1, 1),
+        );
+        $this->assertEquals(
+            array( array(1) ),
+            Clusterer::cluster($pairs)
+        );
     }
 
 }
