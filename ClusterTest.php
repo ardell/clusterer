@@ -30,13 +30,26 @@
 
 require_once 'Clusterer.php';
 
+class ExposePrivatesClusterer extends Clusterer
+{
+    public function __construct()
+    {
+        return parent::__construct(array(), 'strcmp');
+    }
+    public function testPairClusterer($pairs)
+    {
+        $buckets = array();
+        return $this->recursiveCluster($pairs, $buckets);
+    }
+}
+
 class ClusterTest extends PHPUnit_Framework_TestCase
 {
 
     public function testClusterReturnsEmptyWithNoPairs()
     {
-        $pairs = array();
-        $this->assertEquals(array(), Clusterer::cluster($pairs));
+        $c = new ExposePrivatesClusterer;
+        $this->assertEquals(array(), $c->testPairClusterer(array()));
     }
 
     /**
@@ -44,9 +57,10 @@ class ClusterTest extends PHPUnit_Framework_TestCase
      */
     public function testClustererClustersItemsCorrectly($pairs, $expected)
     {
+        $c = new ExposePrivatesClusterer;
         $this->assertEquals(
             $expected,
-            Clusterer::cluster($pairs)
+            $c->testPairClusterer($pairs)
         );
     }
 
@@ -94,9 +108,10 @@ class ClusterTest extends PHPUnit_Framework_TestCase
             array(2,    3),
             array(3,    1),
         );
+        $c = new ExposePrivatesClusterer;
         $this->assertEquals(
             array( array(1, 2, 3) ),
-            Clusterer::cluster($pairs)
+            $c->testPairClusterer($pairs)
         );
     }
 
@@ -105,9 +120,10 @@ class ClusterTest extends PHPUnit_Framework_TestCase
         $pairs = array(
             array(1, 1),
         );
+        $c = new ExposePrivatesClusterer;
         $this->assertEquals(
             array( array(1) ),
-            Clusterer::cluster($pairs)
+            $c->testPairClusterer($pairs)
         );
     }
 
