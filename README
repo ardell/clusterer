@@ -1,6 +1,8 @@
 Clusterer
 A pair clustering algorithm in PHP. Released under the MIT license.
 
+To install: pear install channel://ardell.pearfarm.org/Clusterer
+
 This algorithm takes pair data, for instance "a is near b" and "b is near c" to produce clusters (a, b, c).
 
 Input should be provided as an array of 2 item arrays, e.g:
