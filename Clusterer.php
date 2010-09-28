@@ -233,6 +233,9 @@ class Clusterer
             case 'count':
                 $aggregatorF = array('ClustererAggregator', 'count');
                 break;
+            case 'boundingBox':
+                $aggregatorF = array('ClustererAggregator', 'boundingBox');
+                break;
         }
         // assemble data
         for ($i = 0; $i < count($this->clusters); $i++) {
@@ -326,5 +329,41 @@ class ClustererAggregator
     public static function count($data)
     {
         return count($data);
+    }
+    public static function boundingBox($data)
+    {
+        $sw = $ne = NULL;
+        foreach ($data as $ll) {
+            if (!isset($ll['latitude']) or !isset($ll['longitude'])) throw new Exception("boundingBox expects an array of hashes w/latitude and longitude");
+
+            if ($sw === NULL)
+            {
+                $sw = array(
+                                'latitude'  => $ll['latitude'],
+                                'longitude' => $ll['longitude'],
+                );
+                $ne = $sw;
+            }
+            else
+            {
+                if ($ll['latitude'] > $ne['latitude'])
+                {
+                    $ne['latitude'] = $ll['latitude'];
+                }
+                else if ($ll['latitude'] < $sw['latitude'])
+                {
+                    $sw['latitude'] = $ll['latitude'];
+                }
+                if ($ll['longitude'] > $ne['longitude'])
+                {
+                    $ne['longitude'] = $ll['longitude'];
+                }
+                else if ($ll['longitude'] < $sw['longitude'])
+                {
+                    $sw['longitude'] = $ll['longitude'];
+                }
+            }
+        }
+        return array('ne' => $ne, 'sw' => $sw);
     }
 }
