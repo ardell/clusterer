@@ -58,9 +58,11 @@ class ClusterTest extends PHPUnit_Framework_TestCase
     public function testClustererClustersItemsCorrectly($pairs, $expected)
     {
         $c = new ExposePrivatesClusterer;
+        $actual = $c->testPairClusterer($pairs);
         $this->assertEquals(
             $expected,
-            $c->testPairClusterer($pairs)
+            $actual,
+            'Expected: ' . print_r($expected, true) . 'Got: ' . print_r($actual, true)
         );
     }
 
@@ -98,6 +100,18 @@ class ClusterTest extends PHPUnit_Framework_TestCase
         );
         array_push($retVal, $test);
 
+        $test = array(
+            array(
+                array(1, 2),
+                array(3, 4),
+                array(2, 3),
+            ),
+            array(
+                array(1, 2, 3, 4)
+            )
+        );
+        array_push($retVal, $test);
+
         return $retVal;
     }
 
@@ -108,10 +122,14 @@ class ClusterTest extends PHPUnit_Framework_TestCase
             array(2,    3),
             array(3,    1),
         );
+        $expected = array( array(1, 2, 3) );
+
         $c = new ExposePrivatesClusterer;
+        $actual = $c->testPairClusterer($pairs);
         $this->assertEquals(
-            array( array(1, 2, 3) ),
-            $c->testPairClusterer($pairs)
+            $expected,
+            $actual,
+            'Expected: ' . print_r($expected, true) . 'Got: ' . print_r($actual, true)
         );
     }
 
@@ -120,10 +138,14 @@ class ClusterTest extends PHPUnit_Framework_TestCase
         $pairs = array(
             array(1, 1),
         );
+        $expected = array( array(1) );
+
         $c = new ExposePrivatesClusterer;
+        $actual = $c->testPairClusterer($pairs);
         $this->assertEquals(
-            array( array(1) ),
-            $c->testPairClusterer($pairs)
+            $expected,
+            $actual,
+            'Expected: ' . print_r($expected, true) . 'Got: ' . print_r($actual, true)
         );
     }
 

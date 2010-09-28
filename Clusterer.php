@@ -164,47 +164,67 @@ class Clusterer
         $pair = array_shift($pairs);
         list($a, $b) = $pair;
 
-        // If there is a bucket that contains a, then
+        $bucketWithA = NULL;
+        $bucketWithB = NULL;
+        $bucketsWithNeither = array();
         foreach ($buckets as $key => $bucket)
         {
-            if (in_array($a, $bucket))
+            // Find the bucket that A is in
+            if (in_array($a, $bucket) && !in_array($b, $bucket))
             {
-                if (!in_array($b, $bucket))
-                {
-                    // Add b to that bucket
-                    $buckets[$key][] = $b;
-                }
-
-                // return cluster($pairs, $buckets)
-                return $this->recursiveCluster($pairs, $buckets);
+                $bucketWithA = $bucket;
+                continue;
             }
-        }
 
-        // If there is a bucket that contains b, then
-        foreach ($buckets as $key => $bucket)
-        {
-            if (in_array($b, $bucket))
+            // Find the bucket that B is in
+            if (in_array($b, $bucket) && !in_array($a, $bucket))
             {
-                // Add b to that bucket
-                if (!in_array($a, $bucket))
-                {
-                    $buckets[$key][] = $a;
-                }
-
-                // return cluster($pairs, $buckets)
-                return $this->recursiveCluster($pairs, $buckets);
+                $bucketWithB = $bucket;
+                continue;
             }
+
+            // It's possible that we already know A and B are together
+            if (in_array($a, $bucket) && in_array($b, $bucket))
+            {
+                $bucketWithA = $bucket;
+                $bucketWithB = $bucket;
+                continue;
+            }
+
+            // Find all the buckets neither A nor B is in
+            array_push($bucketsWithNeither, $bucket);
         }
 
-        // Create a new bucket
-        // Add a and b to the bucket
-        if ($a == $b)
+        // Initialize our new buckets
+        $newBuckets = $bucketsWithNeither;
+
+        // If A's bucket is full and B's bucket is full, merge A's bucket with B's bucket, recurse
+        if ($bucketWithA && $bucketWithB)
         {
-            array_push($buckets, array($a));
-        } else {
-            array_push($buckets, array($a, $b));
+            $mergedBucket = array_unique(array_merge($bucketWithA, $bucketWithB));
+            array_push($newBuckets, $mergedBucket);
+            return $this->recursiveCluster($pairs, $newBuckets);
         }
-        return $this->recursiveCluster($pairs, $buckets);
+
+        // If A's bucket is empty, add A to B's bucket, recurse
+        if (!$bucketWithA && $bucketWithB)
+        {
+            $mergedBucket = array_unique(array_merge($bucketWithB, array($a)));
+            array_push($newBuckets, $mergedBucket);
+            return $this->recursiveCluster($pairs, $newBuckets);
+        }
+
+        // If B's buckets is empty, add B to A's bucket, recurse
+        if ($bucketWithA && !$bucketWithB)
+        {
+            $mergedBucket = array_unique(array_merge($bucketWithA, array($b)));
+            array_push($newBuckets, $mergedBucket);
+            return $this->recursiveCluster($pairs, $newBuckets);
+        }
+
+        // If A's and B's buckets are both empty, create a new bucket (A, B), recurse
+        array_push($newBuckets, array_unique(array($a, $b)));
+        return $this->recursiveCluster($pairs, $newBuckets);
     }
     // END CLUSTERING ALGORITHM
 
