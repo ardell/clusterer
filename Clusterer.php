@@ -147,6 +147,8 @@ class Clusterer
 
     /**
      * Converts sets of cluster pairs into clusters with all objects in matching pairs.
+     *
+     * @todo Convert to iterative b/c the recursive one blows the stack.
      * @param pairs array of 2 value arrays, eg array( array(a, b), array(c, d) ...)
      * @return array An array of buckets: array( array(a, b, c), array(d, e) ...)
      */
@@ -227,6 +229,9 @@ class Clusterer
                 break;
             case 'top':
                 $aggregatorF = array('ClustererAggregator', 'top');
+                break;
+            case 'count':
+                $aggregatorF = array('ClustererAggregator', 'count');
                 break;
         }
         // assemble data
@@ -317,5 +322,9 @@ class ClustererAggregator
         }
         arsort($histogram);
         return key($histogram);
+    }
+    public static function count($data)
+    {
+        return count($data);
     }
 }
