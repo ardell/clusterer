@@ -149,4 +149,55 @@ class ClusterTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    /**
+     * Need a test case with lots of items so
+     * we can push recursion to its limits.
+     * Maybe we'll need to convert to iteration?
+     *
+     * @dataProvider _scalabilityDataProvider
+     */
+    public function testClustererScales($itemsInCluster = 20)
+    {
+        $pairs = array();
+        $expected = array();
+        for ($i = 1; $i <= $itemsInCluster - 1; $i++)
+        {
+            array_push($pairs, array($i, $i + 1));
+            array_push($expected, $i);
+            array_push($expected, $i + 1);
+        };
+        $expected = array(array_values(array_unique($expected)));
+
+        $c = new ExposePrivatesClusterer;
+        $this->assertEquals(
+            $expected,
+            $c->testPairClusterer($pairs)
+        );
+    }
+
+    public function _scalabilityDataProvider()
+    {
+        return array(
+            array( 10),
+            array( 20),
+            array( 30),
+            array( 40),
+            array( 50),
+            array( 60),
+            array( 70),
+            array( 80),
+            array( 81),
+            array( 82),
+            array( 83),
+            array( 84),
+            // array( 85),
+            // array( 86),
+            // array( 87),
+            // array( 88),
+            // array( 89),
+            // array( 90),
+            // array(100),
+        );
+    }
+
 }
