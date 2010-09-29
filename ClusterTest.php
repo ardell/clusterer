@@ -38,8 +38,7 @@ class ExposePrivatesClusterer extends Clusterer
     }
     public function testPairClusterer($pairs)
     {
-        $buckets = array();
-        return $this->recursiveCluster($pairs, $buckets);
+        return $this->doCluster($pairs);
     }
 }
 
@@ -178,25 +177,21 @@ class ClusterTest extends PHPUnit_Framework_TestCase
     public function _scalabilityDataProvider()
     {
         return array(
-            array( 10),
-            array( 20),
-            array( 30),
-            array( 40),
-            array( 50),
-            array( 60),
-            array( 70),
-            array( 80),
-            array( 81),
-            array( 82),
-            array( 83),
-            array( 84),
-            // array( 85),
-            // array( 86),
-            // array( 87),
-            // array( 88),
-            // array( 89),
-            // array( 90),
-            // array(100),
+            array(10),
+            array(20),
+            array(30),
+            array(40),
+            array(50),
+            array(60),
+            array(70),
+            array(80),
+            array(90),
+            array(100),
+            array(200),
+            array(500),
+            array(1000),
+            array(2000),
+            array(5000),
         );
     }
 
