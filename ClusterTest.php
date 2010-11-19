@@ -42,6 +42,40 @@ class ExposePrivatesClusterer extends Clusterer
     }
 }
 
+class SimpleObj
+{
+    public function __construct($val)
+    {
+        $this->id = (string) $val;
+    }
+    public function id()
+    {
+        return $this->id;
+    }
+    public function __toString()
+    {
+        return $this->id;
+    }
+    // array(new SimpleObj(1), new SimpleObj(2), new SimpleObj(3)),
+    // array(new SimpleObj(4), new SimpleObj(5))
+    public static function cmp($a,$b)
+    {
+        if ($a->id() == 1 and $b->id() == 2) return true;
+        if ($a->id() == 2 and $b->id() == 1) return true;
+
+        if ($a->id() == 1 and $b->id() == 3) return true;
+        if ($a->id() == 3 and $b->id() == 1) return true;
+
+        if ($a->id() == 2 and $b->id() == 3) return true;
+        if ($a->id() == 3 and $b->id() == 2) return true;
+
+        if ($a->id() == 4 and $b->id() == 5) return true;
+        if ($a->id() == 5 and $b->id() == 4) return true;
+
+        return false;
+    }
+}
+
 class ClusterTest extends PHPUnit_Framework_TestCase
 {
 
@@ -112,6 +146,30 @@ class ClusterTest extends PHPUnit_Framework_TestCase
         array_push($retVal, $test);
 
         return $retVal;
+    }
+
+    public function testClustererClustersItemsCorrectlyWithIdMethodGeneratorEnabled()
+    {
+        $inputData = array(
+                new SimpleObj(1),
+                new SimpleObj(2),
+                new SimpleObj(2),
+                new SimpleObj(3),
+                new SimpleObj(4),
+                new SimpleObj(5),
+            );
+        $expected = array(
+                array(new SimpleObj(1), new SimpleObj(2), new SimpleObj(3)),
+                array(new SimpleObj(4), new SimpleObj(5))
+            );
+
+        $c = new Clusterer($inputData, array('SimpleObj', 'cmp'), array(Clusterer::OPT_ID_GENERATOR_METHOD => 'id'));
+        $actual = $c->cluster();
+        $this->assertEquals(
+            $expected,
+            $actual,
+            'Expected: ' . print_r($expected, true) . 'Got: ' . print_r($actual, true)
+        );
     }
 
     public function testClustererDetectsDuplicates()
