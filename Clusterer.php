@@ -58,8 +58,19 @@ class Clusterer
         $options = array_merge(array(
                                                         self::OPT_ID_GENERATOR_METHOD   => NULL,
         ), $options);
+
         // unroll options
         $this->idGeneratorMethod = $options[self::OPT_ID_GENERATOR_METHOD];
+
+        // hash data for speed
+        if ($this->idGeneratorMethod)
+        {
+            $hashedData = array();
+            foreach ($this->inputData as $o) {
+                $hashedData[$o->{$this->idGeneratorMethod}()] = $o;
+            }
+            $this->inputData = $hashedData;
+        }
 
         $this->clusters = array();
     }
@@ -94,14 +105,15 @@ class Clusterer
         $i = 0;
 
         $idGeneratorMethod = $this->idGeneratorMethod;
-        foreach ($this->inputData as $a) {
-            foreach ($this->inputData as $b) {
+        foreach ($this->inputData as $aKey => $a) {
+            foreach ($this->inputData as $bKey => $b) {
                 // optimization (saves n)
-                if ($a === $b) continue;
+                if (($this->idGeneratorMethod and $aKey == $bKey)
+                    or $a === $b) continue;
                 // optimization (saves 50%), if a+b are in cluster, then b+a are as well (or not) by definition
                 if ($idGeneratorMethod)
                 {
-                    $hash = $this->normalizedPairHashKey($a, $b);
+                    $hash = min($a, $b) . "-" . max($a, $b);
                     if (isset($checkedPairs[$hash])) continue;
                     $checkedPairs[$hash] = true;
                 }
@@ -112,7 +124,7 @@ class Clusterer
                 {
                     if ($idGeneratorMethod)
                     {
-                        $clusterPair = array($a->$idGeneratorMethod(), $b->$idGeneratorMethod());
+                        $clusterPair = array($aKey, $bKey);
                     }
                     else
                     {
@@ -124,19 +136,6 @@ class Clusterer
             }
         }
         return $clusterPairs;
-    }
-
-    /**
-     * Generate a hash key for pair(a, b) which will return the same whether or not it's called with (a,b) or (b,a).
-     *
-     * @param object A
-     * @param object B
-     * @return string A hash key representing the a,b pair.
-     */
-    private function normalizedPairHashKey($a, $b)
-    {
-        $f = $this->idGeneratorMethod;
-        return min($a->$f(), $b->$f()) . "-" . max($a->$f(), $b->$f());
     }
     // END PAIRS GENERATION
 
@@ -158,7 +157,7 @@ class Clusterer
     /**
      * Converts sets of cluster pairs into clusters with all objects in matching pairs.
      *
-     * @todo Convert to iterative b/c the recursive one blows the stack.
+     * @todo optimize the in_array() to use isset() instead.
      * @param pairs array of 2 value arrays, eg array( array(a, b), array(c, d) ...)
      * @return array An array of buckets: array( array(a, b, c), array(d, e) ...)
      */
@@ -244,16 +243,11 @@ class Clusterer
         // unroll buckets back into objects
         if ($this->idGeneratorMethod)
         {
-            // hash inputData
-            $hashedObjects = array();
-            foreach ($this->inputData as $o) {
-                $hashedObjects[$o->{$this->idGeneratorMethod}()] = $o;
-            }
             $objBuckets = array();
             foreach ($buckets as $bucket) {
                 $objBucket = array();
                 foreach ($bucket as $o) {
-                    $objBucket[] = $hashedObjects[$o];
+                    $objBucket[] = $this->inputData[$o];
                 }
                 $objBuckets[] = $objBucket;
             }

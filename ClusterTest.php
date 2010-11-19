@@ -44,6 +44,8 @@ class ExposePrivatesClusterer extends Clusterer
 
 class SimpleObj
 {
+    protected $id;
+
     public function __construct($val)
     {
         $this->id = (string) $val;
