@@ -92,14 +92,16 @@ class Clusterer
         $clusterPairs = array();
         $checkedPairs = array();
         $i = 0;
+
+        $idGeneratorMethod = $this->idGeneratorMethod;
         foreach ($this->inputData as $a) {
             foreach ($this->inputData as $b) {
                 // optimization (saves n)
                 if ($a === $b) continue;
                 // optimization (saves 50%), if a+b are in cluster, then b+a are as well (or not) by definition
-                if ($this->idGeneratorMethod)
+                if ($idGeneratorMethod)
                 {
-                    $hash = $this->normalizedPairHashKey($a, $b, $this->idGeneratorMethod);
+                    $hash = $this->normalizedPairHashKey($a, $b);
                     if (isset($checkedPairs[$hash])) continue;
                     $checkedPairs[$hash] = true;
                 }
@@ -108,7 +110,15 @@ class Clusterer
                 $areInSameCluster = call_user_func($this->clusterCompareF, $a, $b);
                 if ($areInSameCluster)
                 {
-                    $clusterPairs[] = array($a, $b);
+                    if ($idGeneratorMethod)
+                    {
+                        $clusterPair = array($a->$idGeneratorMethod(), $b->$idGeneratorMethod());
+                    }
+                    else
+                    {
+                        $clusterPair = array($a, $b);
+                    }
+                    $clusterPairs[] = $clusterPair;
                 }
                 $i++;
             }
@@ -168,21 +178,23 @@ class Clusterer
             foreach ($buckets as $key => $bucket)
             {
                 // Find the bucket that A is in
-                if (in_array($a, $bucket) && !in_array($b, $bucket))
+                $aInBucket = in_array($a, $bucket, true);
+                $bInBucket = in_array($b, $bucket, true);
+                if ($aInBucket && !$bInBucket)
                 {
                     $bucketWithA = $bucket;
                     continue;
                 }
 
                 // Find the bucket that B is in
-                if (in_array($b, $bucket) && !in_array($a, $bucket))
+                if ($bInBucket && !$aInBucket)
                 {
                     $bucketWithB = $bucket;
                     continue;
                 }
 
                 // It's possible that we already know A and B are together
-                if (in_array($a, $bucket) && in_array($b, $bucket))
+                if ($aInBucket && $bInBucket)
                 {
                     $bucketWithA = $bucket;
                     $bucketWithB = $bucket;
@@ -229,6 +241,24 @@ class Clusterer
             continue;
         }
 
+        // unroll buckets back into objects
+        if ($this->idGeneratorMethod)
+        {
+            // hash inputData
+            $hashedObjects = array();
+            foreach ($this->inputData as $o) {
+                $hashedObjects[$o->{$this->idGeneratorMethod}()] = $o;
+            }
+            $objBuckets = array();
+            foreach ($buckets as $bucket) {
+                $objBucket = array();
+                foreach ($bucket as $o) {
+                    $objBucket[] = $hashedObjects[$o];
+                }
+                $objBuckets[] = $objBucket;
+            }
+            $buckets = $objBuckets;
+        }
         return $buckets;
     }
     // END CLUSTERING ALGORITHM
