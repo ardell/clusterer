@@ -113,7 +113,7 @@ class Clusterer
                 // optimization (saves 50%), if a+b are in cluster, then b+a are as well (or not) by definition
                 if ($idGeneratorMethod)
                 {
-                    $hash = min($a, $b) . "-" . max($a, $b);
+                    $hash = min($aKey, $bKey) . "-" . max($aKey, $bKey);
                     if (isset($checkedPairs[$hash])) continue;
                     $checkedPairs[$hash] = true;
                 }
