@@ -30,11 +30,16 @@
 
 require_once 'Clusterer.php';
 
+function typesafeCompare($a, $b)
+{
+    return $a === $b;
+}
+
 class ExposePrivatesClusterer extends Clusterer
 {
     public function __construct()
     {
-        return parent::__construct(array(), 'strcmp');
+        return parent::__construct(array(), 'typesafeCompare');
     }
     public function testPairClusterer($pairs)
     {
@@ -249,30 +254,49 @@ class ClusterTest extends PHPUnit_Framework_TestCase
             array(100),
             array(200),
             array(500),
-            array(1000),
-            array(2000),
-            array(5000),
+            // array(1000),
+            // array(2000),
+            // array(5000),
         );
+    }
+
+    public function testTypesafeInArrayKnowsTheDifferenceBetweenTypesOfObjects()
+    {
+        $string = 'foo';
+        $object = new TestObject('foo');
+
+        $this->assertFalse($string === $object);
+        $this->assertFalse(Clusterer::typesafe_in_array($string, array($object)));
+        $this->assertFalse(Clusterer::typesafe_in_array($object, array($string)));
     }
 
     public function testClustererEnsuresObjectTypeMatching()
     {
-        $foo      = 'foo';
         $obj1     = 'bar';
-        $obj2     = $foo;
-        $obj3     = new TestObject($foo);
+        $obj2     = 'foo';
+        $obj3     = new TestObject('foo');
+
+        // We know that $obj2 (string) and $obj3 (object) are different
+        $this->assertFalse($obj2 === $obj3);
 
         // The problem with in_array is that it will mistakenly
         // assume that $obj2 and $obj3 are the same, so we will
         // result not with (obj1, obj2, obj3), but only
         // (obj1, obj2)
-        $pairs    = array(
-            array($obj1, $obj2),
-            array($obj1, $obj3),
-        );
+        $pair1 = array($obj1, $obj2);
+        $pair2 = array($obj1, $obj3);
+        $pairs    = array($pair1, $pair2);
         $expected = array(
             array($obj1, $obj2, $obj3)
         );
+
+        // Make sure our assumptions are correct
+        $this->assertTrue(Clusterer::typesafe_in_array($obj1, $pair1));
+        $this->assertTrue(Clusterer::typesafe_in_array($obj2, $pair1));
+        $this->assertFalse(Clusterer::typesafe_in_array($obj3, $pair1));
+        $this->assertTrue(Clusterer::typesafe_in_array($obj1, $pair2));
+        $this->assertTrue(Clusterer::typesafe_in_array($obj3, $pair2));
+        $this->assertFalse(Clusterer::typesafe_in_array($obj2, $pair2));
 
         $c      = new ExposePrivatesClusterer;
         $actual = $c->testPairClusterer($pairs);

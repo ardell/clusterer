@@ -5,7 +5,7 @@ $spec = Pearfarm_PackageSpec::create(array(Pearfarm_PackageSpec::OPT_BASEDIR => 
              ->setChannel('ardell.pearfarm.org')
              ->setSummary('A pair clustering algorithm in php.')
              ->setDescription('A pair clustering algorithm in php.')
-             ->setReleaseVersion('0.0.5')
+             ->setReleaseVersion('0.0.6')
              ->setReleaseStability('alpha')
              ->setApiVersion('0.0.3')
              ->setApiStability('alpha')

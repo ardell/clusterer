@@ -177,8 +177,8 @@ class Clusterer
             foreach ($buckets as $key => $bucket)
             {
                 // Find the bucket that A is in
-                $aInBucket = in_array($a, $bucket, true);
-                $bInBucket = in_array($b, $bucket, true);
+                $aInBucket = self::typesafe_in_array($a, $bucket);
+                $bInBucket = self::typesafe_in_array($b, $bucket);
                 if ($aInBucket && !$bInBucket)
                 {
                     $bucketWithA = $bucket;
@@ -210,7 +210,9 @@ class Clusterer
             // If A's bucket is full and B's bucket is full, merge A's bucket with B's bucket, recurse
             if ($bucketWithA && $bucketWithB)
             {
-                $mergedBucket = array_unique(array_merge($bucketWithA, $bucketWithB));
+                $mergedBucket = self::typesafe_array_unique(
+                    array_merge($bucketWithA, $bucketWithB)
+                );
                 array_push($newBuckets, $mergedBucket);
                 $buckets = $newBuckets;
                 continue;
@@ -219,7 +221,7 @@ class Clusterer
             // If A's bucket is empty, add A to B's bucket, recurse
             if (!$bucketWithA && $bucketWithB)
             {
-                $mergedBucket = array_unique(array_merge($bucketWithB, array($a)));
+                $mergedBucket = self::typesafe_array_unique(array_merge($bucketWithB, array($a)));
                 array_push($newBuckets, $mergedBucket);
                 $buckets = $newBuckets;
                 continue;
@@ -228,14 +230,14 @@ class Clusterer
             // If B's buckets is empty, add B to A's bucket, recurse
             if ($bucketWithA && !$bucketWithB)
             {
-                $mergedBucket = array_unique(array_merge($bucketWithA, array($b)));
+                $mergedBucket = self::typesafe_array_unique(array_merge($bucketWithA, array($b)));
                 array_push($newBuckets, $mergedBucket);
                 $buckets = $newBuckets;
                 continue;
             }
 
             // If A's and B's buckets are both empty, create a new bucket (A, B), recurse
-            array_push($newBuckets, array_unique(array($a, $b)));
+            array_push($newBuckets, self::typesafe_array_unique(array($a, $b)));
             $buckets = $newBuckets;
             continue;
         }
@@ -347,6 +349,47 @@ class Clusterer
         return $combined;
     }
     // END METADATA GENERATOR
+
+    // UTILITY METHODS
+    /**
+     * Because PHP's in_array function converts two objects to
+     * strings in order to compare them, we have to create our
+     * own in_array function.  Even if you use the STRICT option
+     * of PHP's in_array function, it first compares strings,
+     * then does type checking.  That method is horribly
+     * inefficient when you're comparing large object graphs.
+     */
+    public static function typesafe_in_array($needle, $haystack)
+    {
+        foreach ($haystack as $item)
+        {
+            if ($item === $needle)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * PHP's array_unique converts objects to strings in order
+     * to determine whether the item is in the array or not.
+     * Instead, we want to do a typesafe comparison (===).
+     */
+    public static function typesafe_array_unique($array)
+    {
+        $retVal = array();
+        foreach ($array as $item)
+        {
+            if (!self::typesafe_in_array($item, $retVal))
+            {
+                array_push($retVal, $item);
+            }
+        }
+        return $retVal;
+    }
+    // END UTILITY METHODS
 }
 
 class ClustererAggregator
