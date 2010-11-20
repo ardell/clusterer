@@ -255,4 +255,49 @@ class ClusterTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    public function testClustererEnsuresObjectTypeMatching()
+    {
+        $foo      = 'foo';
+        $obj1     = 'bar';
+        $obj2     = $foo;
+        $obj3     = new TestObject($foo);
+
+        // The problem with in_array is that it will mistakenly
+        // assume that $obj2 and $obj3 are the same, so we will
+        // result not with (obj1, obj2, obj3), but only
+        // (obj1, obj2)
+        $pairs    = array(
+            array($obj1, $obj2),
+            array($obj1, $obj3),
+        );
+        $expected = array(
+            array($obj1, $obj2, $obj3)
+        );
+
+        $c      = new ExposePrivatesClusterer;
+        $actual = $c->testPairClusterer($pairs);
+        $this->assertEquals(
+            $expected,
+            $actual,
+            "Expected: " . print_r($expected, true) . ", got: " . print_r($actual, true)
+        );
+    }
+
+}
+
+class TestObject
+{
+
+    public $stringVal = NULL;
+
+    public function __construct($stringVal)
+    {
+        $this->stringVal = $stringVal;
+    }
+
+    public function __toString()
+    {
+        return $this->stringVal;
+    }
+
 }
